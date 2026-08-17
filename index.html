@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stazione Meteo MASI-PD (IMASI7) - Dashboard</title>
+    <title>Stazione Meteo Masi (IMASI7) - Dashboard</title>
     <!-- Tailwind CSS via CDN -->
-    <script src="https://jsdelivr.net"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Lucide Icons per icone moderne -->
-    <script src="https://unpkg.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://googleapis.com');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
@@ -46,7 +48,7 @@
             </div>
             <div class="flex flex-col items-end bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2.5 backdrop-blur-md">
                 <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Ultimo Aggiornamento</span>
-                <span id="time" class="text-sm font-medium text-emerald-400 flex items-center gap-1.5 mt-0.5">
+                <span id="update-time" class="text-sm font-medium text-emerald-400 flex items-center gap-1.5 mt-0.5">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>In caricamento...
                 </span>
             </div>
@@ -61,19 +63,20 @@
         <!-- Griglia Principale Dati -->
         <main class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
             
-            <!-- Temperatura Principale -->
+            <!-- Temperatura -->
             <div class="glass-card rounded-2xl p-5 col-span-2 md:col-span-1 lg:col-span-2 flex flex-col justify-between min-h-[160px]">
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-sm font-medium text-slate-400">Temperatura</p>
-                        <h3 id="temp" class="text-4xl md:text-5xl font-bold tracking-tight mt-2 text-white">--°C</h3>
+                        <h3 id="temp-val" class="text-4xl md:text-5xl font-bold tracking-tight mt-2 text-white">--°C</h3>
                     </div>
                     <div class="p-3 bg-orange-500/10 rounded-xl text-orange-400">
                         <i data-lucide="thermometer" class="w-6 h-6"></i>
                     </div>
                 </div>
-                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
-                    <span id="condition">Percepita: --°C</span>
+                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60 flex justify-between">
+                    <span>Percepita: <strong id="feels-val" class="text-slate-200">--°C</strong></span>
+                    <span>Punto di rugiada: <strong id="dew-val" class="text-slate-200">--°C</strong></span>
                 </div>
             </div>
 
@@ -82,14 +85,14 @@
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="text-sm font-medium text-slate-400">Umidità</p>
-                        <h3 id="humidity" class="text-4xl font-bold tracking-tight mt-2 text-white">--%</h3>
+                        <h3 id="humidity-val" class="text-4xl font-bold tracking-tight mt-2 text-white">--%</h3>
                     </div>
                     <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400">
                         <i data-lucide="droplet" class="w-6 h-6"></i>
                     </div>
                 </div>
                 <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
-                    Bilanciamento idrico
+                    Aria interna/esterna bilanciata
                 </div>
             </div>
 
@@ -97,92 +100,82 @@
             <div class="glass-card rounded-2xl p-5 col-span-2 md:col-span-1 lg:col-span-2 flex flex-col justify-between min-h-[160px]">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-sm font-medium text-slate-400">Anemometro</p>
-                        <h3 id="wind" class="text-2xl md:text-3xl font-bold tracking-tight mt-2 text-white">-- km/h</h3>
+                        <p class="text-sm font-medium text-slate-400">Vento</p>
+                        <h3 id="wind-val" class="text-3xl font-bold tracking-tight mt-2 text-white">-- <span class="text-lg font-normal text-slate-400">km/h</span></h3>
                     </div>
                     <div class="p-3 bg-teal-500/10 rounded-xl text-teal-400">
                         <i data-lucide="wind" class="w-6 h-6"></i>
                     </div>
                 </div>
-                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
-                    Velocità e direzione correnti
+                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60 flex justify-between">
+                    <span>Direzione: <strong id="wind-dir" class="text-slate-200">--°</strong></span>
+                    <span>Raffica: <strong id="wind-gust" class="text-slate-200">-- km/h</strong></span>
                 </div>
             </div>
 
-            <!-- Pioggia Odierna -->
+            <!-- Pioggia -->
             <div class="glass-card rounded-2xl p-5 flex flex-col justify-between min-h-[160px]">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-sm font-medium text-slate-400">Pioggia Odierna</p>
-                        <h3 id="precip" class="text-4xl font-bold tracking-tight mt-2 text-white">-- mm</h3>
+                        <p class="text-sm font-medium text-slate-400">Precipitazioni</p>
+                        <h3 id="rain-val" class="text-4xl font-bold tracking-tight mt-2 text-white">-- <span class="text-lg font-normal text-slate-400">mm</span></h3>
                     </div>
                     <div class="p-3 bg-sky-500/10 rounded-xl text-sky-400">
                         <i data-lucide="cloud-rain" class="w-6 h-6"></i>
                     </div>
                 </div>
                 <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
-                    Accumulo piovoso
+                    Intensità odierna
                 </div>
             </div>
 
-            <!-- Pressione -->
+            <!-- Pressione Astronomica -->
             <div class="glass-card rounded-2xl p-5 col-span-2 md:col-span-1 lg:col-span-2 flex flex-col justify-between min-h-[160px]">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-sm font-medium text-slate-400">Pressione</p>
-                        <h3 id="pressure" class="text-3xl font-bold tracking-tight mt-2 text-white">-- hPa</h3>
+                        <p class="text-sm font-medium text-slate-400">Pressione Barometrica</p>
+                        <h3 id="pressure-val" class="text-3xl font-bold tracking-tight mt-2 text-white">-- <span class="text-lg font-normal text-slate-400">hPa</span></h3>
                     </div>
                     <div class="p-3 bg-indigo-500/10 rounded-xl text-indigo-400">
                         <i data-lucide="gauge" class="w-6 h-6"></i>
                     </div>
                 </div>
                 <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
-                    Tendenza atmosferica
+                    Tendenza atmosferica locale
                 </div>
             </div>
 
-            <!-- Radiazione UV / Solare -->
+            <!-- Radiazione Solare -->
             <div class="glass-card rounded-2xl p-5 flex flex-col justify-between min-h-[160px]">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="text-sm font-medium text-slate-400">Radiazione UV</p>
-                        <h3 id="uv" class="text-4xl font-bold tracking-tight mt-2 text-white">--</h3>
+                        <p class="text-sm font-medium text-slate-400">Radiazione Solare</p>
+                        <h3 id="solar-val" class="text-4xl font-bold tracking-tight mt-2 text-white">-- <span class="text-xs font-normal text-slate-400">W/m²</span></h3>
                     </div>
                     <div class="p-3 bg-yellow-500/10 rounded-xl text-yellow-400">
                         <i data-lucide="sun" class="w-6 h-6"></i>
                     </div>
                 </div>
                 <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
-                    Indice d'intensità
+                    Luminosità globale
                 </div>
-            </div>
-
-            <!-- Punto di Rugiada -->
-            <div class="glass-card rounded-2xl p-5 col-span-2 md:col-span-1 lg:col-span-2 flex flex-col justify-between min-h-[160px]">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm font-medium text-slate-400">Punto di Rugiada</p>
-                        <h3 id="dewpoint" class="text-3xl font-bold tracking-tight mt-2 text-white">--°C</h3>
-                    </div>
-                    <div class="p-3 bg-purple-500/10 rounded-xl text-purple-400">
-                        <i data-lucide="droplets" class="w-6 h-6"></i>
-                    </div>
-                </div>
-                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
-                    Saturazione dell'umidità
-                </div>
-            </div>
-
-            <!-- Pulsante di Aggiornamento Manuale Interno alla Griglia -->
-            <div class="col-span-2 md:col-span-1 lg:col-span-4 flex items-center justify-center p-2">
-                <button class="w-full h-14 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-xl font-bold text-base shadow-lg transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2" onclick="fetchWeatherData()">
-                    <i data-lucide="refresh-cw" class="w-5 h-5"></i> Aggiorna Dati Manualmente
-                </button>
             </div>
 
         </main>
 
-        <!-- SEZIONE AGGIUNTIVA: Contesto, Mappa Geografica e Link Osservatorio -->
+        <!-- Bottone di aggiornamento manuale moderno -->
+        <div class="flex justify-center pt-2">
+            <button class="w-full max-w-md h-12 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-xl font-bold text-sm shadow-lg transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2" onclick="fetchWeatherData()">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Aggiorna Dati Manualmente
+            </button>
+        </div>
+
+        <!-- NUOVA SEZIONE: Spiegazione, Mappa Geografica e Link Osservatorio -->
         <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
             
             <!-- Spiegazione dei Parametri -->
+            <div class="glass-card rounded-2xl p-6 lg:col-span-1 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xl font-bold mb-4 text-gradient flex items-center gap-2">
+                        <i data-lucide="info" class="w-5 h-5 text-sky-400"></i> Informazioni sui Dati
+                    </h2>
