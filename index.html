@@ -183,6 +183,7 @@
         let mapInstance = null;
         let tileLayerInstance = null;
 
+        // Funzioni di conversione da unità imperiali a metriche europee
         function mphToKmh(mph) { return mph !== undefined ? Math.round(mph * 1.60934 * 10) / 10 : 0; }
         function inchesToMm(inches) { return inches !== undefined ? Math.round(inches * 25.4 * 10) / 10 : 0; }
         function fToC(f) { return f !== undefined ? Math.round((f - 32) * 5 / 9 * 10) / 10 : 0; }
@@ -212,14 +213,31 @@
             document.getElementById('wind-gust').innerText = `${mphToKmh(obs.imperial.windGust)} km/h`;
             document.getElementById('rain-val').innerHTML = `${inchesToMm(obs.imperial.precipTotal)} <span class="text-lg font-normal text-slate-400">mm</span>`;
             document.getElementById('pressure-val').innerHTML = `${inhgToHpa(obs.imperial.pressure)} <span class="text-lg font-normal text-slate-400">hPa</span>`;
-            document.getElementById('solar-val').innerHTML = `${obs.solarRadiation || 0} <span class="text-xs font-normal text-slate-400">W/m²</span>`;
             
-            const uv = obs.uv !== undefined ? obs.uv : 0;
-            document.getElementById('uv-val').innerText = uv;
+            // --- ALGORITMO DI CALCOLO E STIMA DELLA RADIAZIONE SOLARE ---
+            let uvValue = (obs.uv !== undefined && obs.uv !== null) ? obs.uv : 0;
+            let solarValue = 0;
+            let labelSuffix = "";
+
+            // Verifica se esiste un dato hardware effettivo valido e maggiore di zero
+            if (obs.solarRadiation !== undefined && obs.solarRadiation !== null && obs.solarRadiation > 0) {
+                solarValue = obs.solarRadiation;
+            } else if (obs.imperial && obs.imperial.solarRadiation !== undefined && obs.imperial.solarRadiation !== null && obs.imperial.solarRadiation > 0) {
+                solarValue = obs.imperial.solarRadiation;
+            } else {
+                // Calcolo matematico compensativo basato sulla proporzione dell'indice UV
+                solarValue = Math.round(uvValue * 125); 
+                labelSuffix = " <span class='text-[10px] text-amber-400 block'>(Stimato via UV)</span>";
+            }
+            
+            document.getElementById('solar-val').innerHTML = `${solarValue}<span class="text-xs font-normal text-slate-400"> W/m²</span>${labelSuffix}`;
+            // -----------------------------------------------------------
+
+            document.getElementById('uv-val').innerText = uvValue;
             const uvLevelEl = document.querySelector('.id-uv-level');
-            if(uv <= 2) uvLevelEl.innerText = "Basso rischio";
-            else if(uv <= 5) uvLevelEl.innerText = "Rischio Moderato";
-            else if(uv <= 7) uvLevelEl.innerText = "Rischio Alto";
+            if(uvValue <= 2) uvLevelEl.innerText = "Basso rischio";
+            else if(uvValue <= 5) uvLevelEl.innerText = "Rischio Moderato";
+            else if(uvValue <= 7) uvLevelEl.innerText = "Rischio Alto";
             else uvLevelEl.innerText = "Rischio Estremo!";
 
             const localTime = new Date(obs.obsTimeLocal);
