@@ -5,258 +5,196 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Stazione Meteo MASI-PD</title>
     <style>
-        :root {
-            --bg-color: #f0f2f5;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-muted: #666666;
-            --accent-color: #007aff;
-            --border-color: #e5e5e5;
-            --shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #121212;
-                --card-bg: #1e1e1e;
-                --text-main: #f5f5f7;
-                --text-muted: #a1a1a6;
-                --accent-color: #0a84ff;
-                --border-color: #333333;
-                --shadow: 0 4px 12px rgba(0,0,0,0.3);
-            }
-        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            font-family: Arial, sans-serif;
+            background-color: #f4f5f7;
+            color: #2b2b2b;
             margin: 0;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            padding: 0;
+        }
+        .header {
+            background-color: #1b2a47;
+            color: #ffffff;
+            padding: 15px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 13px;
+            color: #b0c4de;
         }
         .container {
-            width: 100%;
-            max-width: 500px;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 15px;
+            box-sizing: border-box;
         }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
+        .card {
+            background-color: #ffffff;
+            border: 1px solid #dcdcdc;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
         }
-        h1 {
-            font-size: 24px;
-            margin: 0 0 4px 0;
-            font-weight: 700;
-        }
-        .station-id {
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dcdcdc;
+            padding: 10px 15px;
             font-size: 14px;
-            color: var(--text-muted);
-            background: var(--border-color);
-            padding: 2px 8px;
-            border-radius: 12px;
-            display: inline-block;
+            font-weight: bold;
         }
-        .main-card {
-            background-color: var(--card-bg);
-            border-radius: 20px;
-            padding: 24px;
+        .main-panel {
+            padding: 20px 15px;
             text-align: center;
-            box-shadow: var(--shadow);
-            margin-bottom: 16px;
-            position: relative;
         }
-        .temp-display {
-            font-size: 64px;
-            font-weight: 200;
-            margin: 10px 0;
-            line-height: 1;
+        .time {
+            font-size: 12px;
+            color: #666666;
+            margin-bottom: 10px;
         }
-        .grid-sensors {
+        .temp {
+            font-size: 56px;
+            font-weight: bold;
+        }
+        .unit {
+            font-size: 28px;
+            vertical-align: super;
+        }
+        .grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            width: 100%;
+            border-top: 1px solid #dcdcdc;
         }
-        .sensor-card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 14px;
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
+        .grid-item {
+            padding: 15px;
+            border-bottom: 1px solid #dcdcdc;
+            box-sizing: border-box;
         }
-        .sensor-label {
+        .grid-item:nth-child(odd) {
+            border-right: 1px solid #dcdcdc;
+        }
+        .label {
             font-size: 12px;
-            color: var(--text-muted);
+            color: #666666;
+            margin-bottom: 5px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
         }
-        .sensor-value {
-            font-size: 18px;
-            font-weight: 600;
-        }
-        .full-width {
-            grid-column: span 2;
-        }
-        .footer-info {
-            text-align: center;
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 20px;
-            line-height: 1.5;
-        }
-        .btn-refresh {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 14px;
-            margin-top: 15px;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,122,255,0.3);
-            width: 100%;
-        }
-        .error-msg {
-            color: #ff453a;
+        .value {
+            font-size: 16px;
             font-weight: bold;
-            padding: 20px;
-            text-align: center;
         }
-        .section-title {
+        .full-row {
             grid-column: span 2;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--accent-color);
-            margin: 10px 0 2px 0;
+        }
+        .btn {
+            background-color: #00739c;
+            color: #ffffff;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .error {
+            padding: 30px 15px;
+            text-align: center;
+            color: #d9534f;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
+<div class="header">
+    <h1>Stazione Meteo MASI-PD</h1>
+    <p>ID Stazione: IMASI7</p>
+</div>
+
 <div class="container">
-    <header>
-        <h1>Stazione Meteo MASI-PD</h1>
-        <span class="station-id">ID: IMASI7</span>
-    </header>
-
-    <div id="weather-content">
-        <!-- Caricamento iniziale dei dati -->
-        <div class="main-card">Caricamento dati in corso...</div>
+    <div id="meteo-dashboard">
+        <div class="card">
+            <div class="main-panel">
+                <div class="time">Connessione in corso...</div>
+            </div>
+        </div>
     </div>
-
-    <button class="btn-refresh" onclick="fetchWeather()">Aggiorna Dati</button>
-
-    <div class="footer-info">
-        Aggiornamento automatico ogni 5 minuti.<br>
-        Dati estratti in tempo reale dalle API di WeatherUnderground.
-    </div>
+    <button class="btn" onclick="caricaMeteo()">Aggiorna Dati</button>
 </div>
 
 <script>
-    const stationId = 'IMASI7';
-    const apiKey = '6240e69b30c8456280e69b30c8156279';
-    const url = `https://weather.com{stationId}&format=json&units=m&apiKey=${apiKey}`;
-
-    function degToCompass(num) {
-        var val = Math.floor((num / 22.5) + 0.5);
-        var arr = ["N", "N-NE", "NE", "E-NE", "E", "E-SE", "SE", "S-SE", "S", "S-SO", "SO", "O-SO", "O", "O-NO", "NO", "N-NO"];
-        return arr[(val % 16)];
+    function bussa(gradi) {
+        if (gradi === null || gradi === undefined || isNaN(gradi)) return '--';
+        var idx = Math.floor((gradi / 22.5) + 0.5) % 16;
+        var bus = ["N", "N-NE", "NE", "E-NE", "E", "E-SE", "SE", "S-SE", "S", "S-SO", "SO", "O-SO", "O", "O-NO", "NO", "N-NO"];
+        return bus[idx];
     }
 
-    // Gestione dei valori assenti o non trasmessi dalla centralina
-    function formatValue(value, unit, decimals = 1) {
-        if (value === null || value === undefined || isNaN(value)) {
-            return `<span style="color:var(--text-muted); font-weight:normal;">--</span>`;
-        }
-        return `${Number(value).toFixed(decimals)} ${unit}`;
+    function txt(val, u, d) {
+        if (val === null || val === undefined || isNaN(val) || val === "") return '--';
+        return Number(val).toFixed(d) + ' ' + u;
     }
 
-    async function fetchWeather() {
-        const contentDiv = document.getElementById('weather-content');
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Errore nel recupero dati');
-            const data = await response.json();
-            
-            if (!data.observations || data.observations.length === 0) {
-                throw new Error('Nessun dato disponibile');
-            }
+    function caricaMeteo() {
+        var box = document.getElementById('meteo-dashboard');
+        var api = 'https://weather.com';
 
-            const obs = data.observations[0];
-            const metric = obs.metric;
+        fetch(api)
+            .then(function(r) { return r.json(); })
+            .then(function(j) {
+                if (!j.observations || j.observations.length === 0) {
+                    box.innerHTML = '<div class="card"><div class="error">Nessun dato trovato</div></div>';
+                    return;
+                }
+                var o = j.observations[0];
+                var m = o.metric;
+                var t = new Date(o.obsTimeLocal).toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});
 
-            // Formattazione data locale italiana
-            const obsTime = new Date(obs.obsTimeLocal).toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'});
+                box.innerHTML = '<div class="card">' +
+                    '<div class="card-header">Condizioni Attuali</div>' +
+                    '<div class="main-panel">' +
+                        '<div class="time">Ultimo aggiornamento: <b>' + t + '</b></div>' +
+                        '<div class="temp">' + Number(m.temp).toFixed(1) + '<span class="unit">°C</span></div>' +
+                    '</div>' +
+                    '<div class="grid">' +
+                        '<div class="grid-item"><div class="label">Umidità</div><div class="value">' + txt(o.humidity, '%', 0) + '</div></div>' +
+                        '<div class="grid-item"><div class="label">Pressione</div><div class="value">' + txt(m.pressure, 'hPa', 1) + '</div></div>' +
+                        '<div class="grid-item"><div class="label">Punto di Rugiada</div><div class="value">' + txt(m.dewpt, '°C', 1) + '</div></div>' +
+                        '<div class="grid-item"><div class="label">Percepita (Heat Index)</div><div class="value">' + txt(m.heatIndex, '°C', 1) + '</div></div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="card">' +
+                    '<div class="card-header">Vento e Pioggia</div>' +
+                    '<div class="grid">' +
+                        '<div class="grid-item"><div class="label">Velocità Vento</div><div class="value">' + txt(m.windSpeed, 'km/h', 1) + '</div></div>' +
+                        '<div class="grid-item"><div class="label">Raffiche</div><div class="value">' + txt(m.windGust, 'km/h', 1) + '</div></div>' +
+                        '<div class="grid-item full-row"><div class="label">Direzione Vento</div><div class="value">' + (o.winddir !== null && o.winddir !== undefined ? o.winddir + '° (' + bussa(o.winddir) + ')' : '--') + '</div></div>' +
+                        '<div class="grid-item"><div class="label">Pioggia Oraria</div><div class="value">' + txt(m.precipRate, 'mm/h', 1) + '</div></div>' +
+                        '<div class="grid-item"><div class="label">Pioggia Oggi</div><div class="value">' + txt(m.precipTotal, 'mm', 1) + '</div></div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="card">' +
+                    '<div class="card-header">Radiazione e Luce</div>' +
+                    '<div class="grid">' +
+                        '<div class="grid-item"><div class="label">Indice UV</div><div class="value">' + txt(o.uv, '', 1) + '</div></div>' +
+                        '<div class="grid-item"><div class="label">Radiazione Solare</div><div class="value">' + txt(o.solarRadiation, 'W/m²', 0) + '</div></div>' +
+                    '</div>' +
+                '</div>';
+            })
+            .catch(function(e) {
+                box.innerHTML = '<div class="card"><div class="error">⚠️ Errore di caricamento dati</div></div>';
+            });
+    }
 
-            contentDiv.innerHTML = `
-                <!-- Blocco Principale Temperatura -->
-                <div class="main-card">
-                    <div class="sensor-label">Temperatura Esterna</div>
-                    <div class="temp-display">${formatValue(metric.temp, '°C', 1)}</div>
-                    <div class="sensor-value" style="font-size:14px; color:var(--text-muted);">
-                        Umidità: ${formatValue(obs.humidity, '%', 0)}
-                    </div>
-                    <div style="font-size:11px; color:var(--text-muted); margin-top:15px;">
-                        Ultimo report della centralina: <b>${obsTime}</b>
-                    </div>
-                </div>
+    caricaMeteo();
+    setInterval(caricaMeteo, 300000);
+</script>
 
-                <!-- Griglia Completa di tutti i Sensori Possibili -->
-                <div class="grid-sensors">
-                    
-                    <!-- SEZIONE VENTO -->
-                    <div class="section-title">Vento</div>
-                    <div class="sensor-card">
-                        <div class="sensor-label">Velocità Vento</div>
-                        <div class="sensor-value">${formatValue(metric.windSpeed, 'km/h', 1)}</div>
-                    </div>
-                    <div class="sensor-card">
-                        <div class="sensor-label">Raffica Massima</div>
-                        <div class="sensor-value">${formatValue(metric.windGust, 'km/h', 1)}</div>
-                    </div>
-                    <div class="sensor-card full-width">
-                        <div class="sensor-label">Direzione Vento</div>
-                        <div class="sensor-value">
-                            ${obs.winddir !== null ? `${obs.winddir}° (${degToCompass(obs.winddir)})` : '--'}
-                        </div>
-                    </div>
-
-                    <!-- SEZIONE PRECIPITAZIONI -->
-                    <div class="section-title">Pioggia</div>
-                    <div class="sensor-card">
-                        <div class="sensor-label">Intensità Oraria</div>
-                        <div class="sensor-value">${formatValue(metric.precipRate, 'mm/h', 1)}</div>
-                    </div>
-                    <div class="sensor-card">
-                        <div class="sensor-label">Accumulo Odierno</div>
-                        <div class="sensor-value">${formatValue(metric.precipTotal, 'mm', 1)}</div>
-                    </div>
-
-                    <!-- SEZIONE PRESSIONE E INDICI TERMICI -->
-                    <div class="section-title">Atmosfera e Indici</div>
-                    <div class="sensor-card">
-                        <div class="sensor-label">Pressione Barometrica</div>
-                        <div class="sensor-value">${formatValue(metric.pressure, 'hPa', 1)}</div>
-                    </div>
-                    <div class="sensor-card">
-                        <div class="sensor-label">Punto di Rugiada</div>
-                        <div class="sensor-value">${formatValue(metric.dewpt, '°C', 1)}</div>
-                    </div>
-                    <div class="sensor-card">
-                        <div class="sensor-label">Percepita (Wind Chill)</div>
-                        <div class="sensor-value">${formatValue(metric.windChill, '°C', 1)}</div>
-                    </div>
-                    <div class="sensor-card">
-                        <div class="sensor-label">Indice di Calore</div>
-                        <div class="sensor-value">${formatValue(metric.heatIndex, '°C', 1)}</div>
-                    </div>
-
-                    <!-- SEZIONE RADIAZIONE SOLARE / UV -->
-                    <div class="section-title">Radiazione e Luce</div>
-                    <div class="sensor-card">
-                        <div class="sensor-label">Indice UV</div>
+</body>
+</html>
