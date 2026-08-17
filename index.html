@@ -123,7 +123,7 @@
                 </div>
             </div>
 
-            <!-- Pressione Astronomica -->
+            <!-- Pressione Barometrica -->
             <div class="glass-card rounded-2xl p-5 col-span-2 md:col-span-1 lg:col-span-2 flex flex-col justify-between min-h-[160px]">
                 <div class="flex justify-between items-start">
                     <div>
@@ -155,242 +155,24 @@
                 </div>
             </div>
 
-            <!-- Indice UV -->
-            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between min-h-[160px]">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-sm font-medium text-slate-400">Indice UV</p>
-                        <h3 id="uv-val" class="text-4xl font-bold tracking-tight mt-2 text-white">--</h3>
-                    </div>
-                    <div class="p-3 bg-violet-500/10 rounded-xl text-violet-400">
-                        <i data-lucide="shield-alert" class="w-6 h-6"></i>
-                    </div>
-                </div>
-                <div class="text-xs id-uv-level text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
-                    Livello di rischio
-                </div>
-            </div>
-
         </main>
 
-        <!-- Area Grafico Storico -->
-        <section class="glass-card rounded-3xl p-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <!-- NUOVA SEZIONE: Contesto, Mappa Geografica e Link Osservatorio -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
+            
+            <!-- Spiegazione dei Parametri -->
+            <div class="glass-card rounded-2xl p-6 lg:col-span-1 flex flex-col justify-between">
                 <div>
-                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
-                        <i data-lucide="trending-up" class="w-5 h-5 text-indigo-400"></i> Andamento delle Ultime 24 Ore
+                    <h2 class="text-xl font-bold mb-4 text-gradient flex items-center gap-2">
+                        <i data-lucide="info" class="w-5 h-5 text-sky-400"></i> Informazioni sui Dati
                     </h2>
-                    <p class="text-sm text-slate-400 mt-0.5">Dati storici reali aggregati da Weather Underground</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="changeChartDataset('temp')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition">Temperatura</button>
-                    <button onclick="changeChartDataset('rain')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Pioggia</button>
-                    <button onclick="changeChartDataset('wind')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Vento</button>
-                </div>
-            </div>
-            <div class="h-[350px] w-full">
-                <canvas id="historyChart"></canvas>
-            </div>
-        </section>
-
-    </div>
-
-    <!-- Script Logica Dati -->
-    <script>
-        const STATION_ID = 'IMASI7';
-        const API_KEY = '6240e69b30c8456280e69b30c8156279';
-        
-        let weatherChart;
-        let historicalDataRaw = null;
-
-        // Funzione helper per convertire le miglia in chilometri orari
-        function mphToKmh(mph) {
-            return mph !== undefined ? Math.round(mph * 1.60934 * 10) / 10 : 0;
-        }
-
-        // Funzione helper per convertire i pollici in millimetri
-        function inchesToMm(inches) {
-            return inches !== undefined ? Math.round(inches * 25.4 * 10) / 10 : 0;
-        }
-
-        // Funzione helper per convertire i gradi Fahrenheit in Celsius
-        function fToC(f) {
-            return f !== undefined ? Math.round((f - 32) * 5 / 9 * 10) / 10 : 0;
-        }
-
-        // Funzione helper per convertire i pollici di mercurio in hPa
-        function inhgToHpa(inhg) {
-            return inhg !== undefined ? Math.round(inhg * 33.8639 * 10) / 10 : 0;
-        }
-
-        // Recupera i dati meteo in tempo reale correnti
-        async function fetchCurrentWeather() {
-            const url = `https://api.weather.com/v2/pws/observations/current?stationId=${STATION_ID}&format=json&units=e&apiKey=${API_KEY}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("Errore nel recupero dei dati correnti");
-                const data = await response.json();
-                
-                if(data && data.observations && data.observations.length > 0) {
-                    updateDashboardUI(data.observations[0]);
-                }
-            } catch (error) {
-                console.error("Errore API Corrente:", error);
-                document.getElementById('update-time').innerText = "Errore di connessione";
-                document.getElementById('update-time').className = "text-sm font-medium text-red-400 flex items-center gap-1.5 mt-0.5";
-            }
-        }
-
-        // Aggiorna gli elementi testuali della Dashboard
-        function updateDashboardUI(obs) {
-            // Conversione unità imperiali -> metriche europee
-            const tempC = fToC(obs.imperial.temp);
-            const feelsC = fToC(obs.imperial.windChill); // o heatIndex
-            const dewC = fToC(obs.imperial.dewpt);
-            const windKmh = mphToKmh(obs.imperial.windSpeed);
-            const gustKmh = mphToKmh(obs.imperial.windGust);
-            const rainMm = inchesToMm(obs.imperial.precipTotal);
-            const pressureHpa = inhgToHpa(obs.imperial.pressure);
-
-            document.getElementById('temp-val').innerText = `${tempC}°C`;
-            document.getElementById('feels-val').innerText = `${feelsC}°C`;
-            document.getElementById('dew-val').innerText = `${dewC}°C`;
-            document.getElementById('humidity-val').innerText = `${obs.humidity}%`;
-            document.getElementById('wind-val').innerHTML = `${windKmh} <span class="text-lg font-normal text-slate-400">km/h</span>`;
-            document.getElementById('wind-dir').innerText = `${obs.winddir}°`;
-            document.getElementById('wind-gust').innerText = `${gustKmh} km/h`;
-            document.getElementById('rain-val').innerHTML = `${rainMm} <span class="text-lg font-normal text-slate-400">mm</span>`;
-            document.getElementById('pressure-val').innerHTML = `${pressureHpa} <span class="text-lg font-normal text-slate-400">hPa</span>`;
-            document.getElementById('solar-val').innerHTML = `${obs.solarRadiation || 0} <span class="text-xs font-normal text-slate-400">W/m²</span>`;
-            
-            const uv = obs.uv !== undefined ? obs.uv : 0;
-            document.getElementById('uv-val').innerText = uv;
-            
-            // Logica colore rischio UV
-            const uvLevelEl = document.querySelector('.id-uv-level');
-            if(uv <= 2) uvLevelEl.innerText = "Basso rischio";
-            else if(uv <= 5) uvLevelEl.innerText = "Rischio Moderato";
-            else if(uv <= 7) uvLevelEl.innerText = "Rischio Alto";
-            else uvLevelEl.innerText = "Rischio Estremo!";
-
-            // Orario aggiornamento localizzato
-            const localTime = new Date(obs.obsTimeLocal);
-            document.getElementById('update-time').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online - ${localTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
-            document.getElementById('update-time').className = "text-sm font-medium text-emerald-400 flex items-center gap-1.5 mt-0.5";
-        }
-
-        // Recupera i dati storici delle ultime 24 ore
-        async function fetchHistoricalWeather() {
-            const url = `https://api.weather.com/v2/pws/observations/hourly/7day?stationId=${STATION_ID}&format=json&units=e&apiKey=${API_KEY}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error("Errore nel recupero dello storico");
-                const data = await response.json();
-                
-                if(data && data.observations) {
-                    // Prendiamo solo le ultime 24 rilevazioni orarie per mantenere il grafico pulito
-                    historicalDataRaw = data.observations.slice(-24);
-                    initOrUpdateChart('temp');
-                }
-            } catch (error) {
-                console.error("Errore API Storico:", error);
-            }
-        }
-
-        // Configura o aggiorna la struttura del grafico Chart.js
-        function initOrUpdateChart(type) {
-            if(!historicalDataRaw) return;
-
-            const labels = historicalDataRaw.map(obs => {
-                const time = new Date(obs.obsTimeLocal);
-                return time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            });
-
-            let chartData = [];
-            let labelText = '';
-            let borderColor = '';
-            let backgroundColor = '';
-
-            if (type === 'temp') {
-                chartData = historicalDataRaw.map(obs => fToC(obs.imperial.tempHigh));
-                labelText = 'Temperatura Max (°C)';
-                borderColor = '#f97316';
-                backgroundColor = 'rgba(249, 115, 22, 0.15)';
-            } else if (type === 'rain') {
-                chartData = historicalDataRaw.map(obs => inchesToMm(obs.imperial.precipRate));
-                labelText = 'Intensità Pioggia (mm/h)';
-                borderColor = '#38bdf8';
-                backgroundColor = 'rgba(56, 189, 248, 0.15)';
-            } else if (type === 'wind') {
-                chartData = historicalDataRaw.map(obs => mphToKmh(obs.imperial.windspeedHigh));
-                labelText = 'Raffica Vento Max (km/h)';
-                borderColor = '#14b8a6';
-                backgroundColor = 'rgba(20, 184, 166, 0.15)';
-            }
-
-            if (weatherChart) {
-                weatherChart.data.labels = labels;
-                weatherChart.data.datasets[0].data = chartData;
-                weatherChart.data.datasets[0].label = labelText;
-                weatherChart.data.datasets[0].borderColor = borderColor;
-                weatherChart.data.datasets[0].backgroundColor = backgroundColor;
-                weatherChart.update();
-            } else {
-                const ctx = document.getElementById('historyChart').getContext('2d');
-                weatherChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: labelText,
-                            data: chartData,
-                            borderColor: borderColor,
-                            backgroundColor: backgroundColor,
-                            borderWidth: 3,
-                            fill: true,
-                            tension: 0.4,
-                            pointRadius: 2,
-                            pointHoverRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: 500 } } }
-                        },
-                        scales: {
-                            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } },
-                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }
-                        }
-                    }
-                });
-            }
-        }
-
-        // Permette lo switch tra i vari dataset tramite i bottoni dell'interfaccia
-        function changeChartDataset(type) {
-            const buttons = document.querySelectorAll('section button');
-            buttons.forEach(btn => {
-                btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
-            });
-            
-            // Imposta classe attiva sul bottone cliccato
-            event.target.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition";
-            initOrUpdateChart(type);
-        }
-
-        // Avvio ed esecuzione periodica (Polling ogni 5 minuti)
-        function initDashboard() {
-            lucide.createIcons();
-            fetchCurrentWeather();
-            fetchHistoricalWeather();
-            
-            setInterval(fetchCurrentWeather, 300000); 
-            setInterval(fetchHistoricalWeather, 900000);
-        }
-
-        window.onload = initDashboard;
-    </script>
-</body>
-</html>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                        Questa stazione monitora costantemente il microclima locale. I parametri principali includono:
+                    </p>
+                    <ul class="space-y-3 text-xs text-slate-400">
+                        <li class="flex items-start gap-2">
+                            <strong class="text-slate-200 min-w-[110px]">Punto di Rugiada:</strong> La temperatura alla quale l'aria diventa satura d'acqua, utile per calcolare il rischio di brina e foschia.
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <strong class="text-slate-200 min-w-[110px]">Pressione (hPa):</strong> Indica la forza dell'atmosfera. Un calo repentino anticipa il maltempo; valori alti indicano stabilità stazionaria.
+                        </li>
