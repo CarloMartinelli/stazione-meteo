@@ -3,198 +3,394 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stazione Meteo MASI-PD</title>
+    <title>Stazione Meteo Masi (IMASI7) - Dashboard</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Chart.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons per icone moderne -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        :root {
-            --bg-color: #f0f4f8;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --accent-color: #0073e6;
-            --muted-text: #666666;
-        }
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-color: #121212;
-                --card-bg: #1e1e1e;
-                --text-color: #e0e0e0;
-                --accent-color: #4da3ff;
-                --muted-text: #aaaaaa;
-            }
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
         }
-        .container {
-            width: 100%;
-            max-width: 480px;
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        header {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 10px 0;
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 12px 20px -10px rgba(99, 102, 241, 0.3);
         }
-        h1 { font-size: 1.5rem; margin-bottom: 5px; color: var(--accent-color); }
-        .station-id { font-size: 0.9rem; color: var(--muted-text); font-weight: bold; }
-        .last-update { font-size: 0.8rem; color: var(--muted-text); margin-top: 5px; }
-        .error {
-            background-color: #ffdde0;
-            color: #d32f2f;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 15px;
-            display: none;
-            font-size: 0.9rem;
+        .text-gradient {
+            background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        .main-card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 15px;
-        }
-        .temp-display { font-size: 3.5rem; font-weight: bold; margin: 10px 0; line-height: 1; }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            width: 100%;
-        }
-        .card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-        .card-label { font-size: 0.8rem; color: var(--muted-text); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .card-value { font-size: 1.2rem; font-weight: bold; }
-        .btn-refresh {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            margin-top: 20px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .btn-refresh:active { opacity: 0.9; }
     </style>
 </head>
-<body>
+<body class="text-slate-100 min-h-screen p-4 md:p-8">
 
-<div class="container">
-    <header>
-        <h1>Stazione Meteo MASI-PD</h1>
-        <div class="station-id">ID Stazione: IMASI7</div>
-        <div class="last-update" id="time">-</div>
-    </header>
+    <div class="max-w-7xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6">
+            <div>
+                <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-gradient">Masi Meteo Dashboard</h1>
+                <p class="text-slate-400 mt-1 flex items-center gap-2">
+                    <i data-lucide="map-pin" class="w-4 h-4 text-sky-400"></i> Stazione ID: <span class="font-semibold text-slate-200">IMASI7</span> (Vevor Ecosystem)
+                </p>
+            </div>
+            <div class="flex flex-col items-end bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2.5 backdrop-blur-md">
+                <span class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Ultimo Aggiornamento</span>
+                <span id="update-time" class="text-sm font-medium text-emerald-400 flex items-center gap-1.5 mt-0.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>In caricamento...
+                </span>
+            </div>
+        </header>
 
-    <div id="error-msg" class="error">Impossibile recuperare i dati. Verifica la connessione o le credenziali.</div>
+        <!-- Griglia Principale Dati -->
+        <main class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+            
+            <!-- Temperatura -->
+            <div class="glass-card rounded-2xl p-5 col-span-2 md:col-span-1 lg:col-span-2 flex flex-col justify-between min-h-[160px]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Temperatura</p>
+                        <h3 id="temp-val" class="text-4xl md:text-5xl font-bold tracking-tight mt-2 text-white">--°C</h3>
+                    </div>
+                    <div class="p-3 bg-orange-500/10 rounded-xl text-orange-400">
+                        <i data-lucide="thermometer" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60 flex justify-between">
+                    <span>Percepita: <strong id="feels-val" class="text-slate-200">--°C</strong></span>
+                    <span>Punto di rugiada: <strong id="dew-val" class="text-slate-200">--°C</strong></span>
+                </div>
+            </div>
 
-    <div class="main-card">
-        <div class="card-label">Temperatura</div>
-        <div class="temp-display" id="temp">--°C</div>
-        <div style="font-size: 0.9rem; color: var(--muted-text);" id="condition">Percepita: --°C</div>
+            <!-- Umidità -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between min-h-[160px]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Umidità</p>
+                        <h3 id="humidity-val" class="text-4xl font-bold tracking-tight mt-2 text-white">--%</h3>
+                    </div>
+                    <div class="p-3 bg-blue-500/10 rounded-xl text-blue-400">
+                        <i data-lucide="droplet" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
+                    Aria interna/esterna bilanciata
+                </div>
+            </div>
+
+            <!-- Vento -->
+            <div class="glass-card rounded-2xl p-5 col-span-2 md:col-span-1 lg:col-span-2 flex flex-col justify-between min-h-[160px]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Vento</p>
+                        <h3 id="wind-val" class="text-4xl font-bold tracking-tight mt-2 text-white">-- <span class="text-lg font-normal text-slate-400">km/h</span></h3>
+                    </div>
+                    <div class="p-3 bg-teal-500/10 rounded-xl text-teal-400">
+                        <i data-lucide="wind" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60 flex justify-between">
+                    <span>Direzione: <strong id="wind-dir" class="text-slate-200">--°</strong></span>
+                    <span>Raffica: <strong id="wind-gust" class="text-slate-200">-- km/h</strong></span>
+                </div>
+            </div>
+
+            <!-- Pioggia -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between min-h-[160px]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Precipitazioni</p>
+                        <h3 id="rain-val" class="text-4xl font-bold tracking-tight mt-2 text-white">-- <span class="text-lg font-normal text-slate-400">mm</span></h3>
+                    </div>
+                    <div class="p-3 bg-sky-500/10 rounded-xl text-sky-400">
+                        <i data-lucide="cloud-rain" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
+                    Intensità odierna
+                </div>
+            </div>
+
+            <!-- Pressione Astronomica -->
+            <div class="glass-card rounded-2xl p-5 col-span-2 md:col-span-1 lg:col-span-2 flex flex-col justify-between min-h-[160px]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Pressione Barometrica</p>
+                        <h3 id="pressure-val" class="text-4xl font-bold tracking-tight mt-2 text-white">-- <span class="text-lg font-normal text-slate-400">hPa</span></h3>
+                    </div>
+                    <div class="p-3 bg-indigo-500/10 rounded-xl text-indigo-400">
+                        <i data-lucide="gauge" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
+                    Tendenza atmosferica locale
+                </div>
+            </div>
+
+            <!-- Radiazione Solare -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between min-h-[160px]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Radiazione Solare</p>
+                        <h3 id="solar-val" class="text-4xl font-bold tracking-tight mt-2 text-white">-- <span class="text-xs font-normal text-slate-400">W/m²</span></h3>
+                    </div>
+                    <div class="p-3 bg-yellow-500/10 rounded-xl text-yellow-400">
+                        <i data-lucide="sun" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
+                    Luminosità globale
+                </div>
+            </div>
+
+            <!-- Indice UV -->
+            <div class="glass-card rounded-2xl p-5 flex flex-col justify-between min-h-[160px]">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-slate-400">Indice UV</p>
+                        <h3 id="uv-val" class="text-4xl font-bold tracking-tight mt-2 text-white">--</h3>
+                    </div>
+                    <div class="p-3 bg-violet-500/10 rounded-xl text-violet-400">
+                        <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                    </div>
+                </div>
+                <div class="text-xs id-uv-level text-slate-400 mt-4 pt-3 border-t border-slate-800/60">
+                    Livello di rischio
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Area Grafico Storico -->
+        <section class="glass-card rounded-3xl p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-indigo-400"></i> Andamento delle Ultime 24 Ore
+                    </h2>
+                    <p class="text-sm text-slate-400 mt-0.5">Dati storici reali aggregati da Weather Underground</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="changeChartDataset('temp')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition">Temperatura</button>
+                    <button onclick="changeChartDataset('rain')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Pioggia</button>
+                    <button onclick="changeChartDataset('wind')" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition">Vento</button>
+                </div>
+            </div>
+            <div class="h-[350px] w-full">
+                <canvas id="historyChart"></canvas>
+            </div>
+        </section>
+
     </div>
 
-    <div class="grid">
-        <div class="card">
-            <div class="card-label">Umidità</div>
-            <div class="card-value" id="humidity">--%</div>
-        </div>
-        <div class="card">
-            <div class="card-label">Vento</div>
-            <div class="card-value" id="wind">-- km/h</div>
-        </div>
-        <div class="card">
-            <div class="card-label">Pioggia Odierna</div>
-            <div class="card-value" id="precip">-- mm</div>
-        </div>
-        <div class="card">
-            <div class="card-label">Pressione</div>
-            <div class="card-value" id="pressure">-- hPa</div>
-        </div>
-        <div class="card">
-            <div class="card-label">Radiazione UV</div>
-            <div class="card-value" id="uv">--</div>
-        </div>
-        <div class="card">
-            <div class="card-label">Punto di Rugiada</div>
-            <div class="card-value" id="dewpoint">--°C</div>
-        </div>
-    </div>
+    <!-- Script Logica Dati -->
+    <script>
+        const STATION_ID = 'IMASI7';
+        const API_KEY = '6240e69b30c8456280e69b30c8156279';
+        
+        let weatherChart;
+        let historicalDataRaw = null;
 
-    <button class="btn-refresh" onclick="fetchWeatherData()">Aggiorna Dati</button>
-</div>
-
-<script>
-    const apiKey = '6240e69b30c8456280e69b30c8156279';
-    const stationId = 'IMASI7';
-    const url = `https://api.weather.com/v2/pws/observations/current?stationId=${stationId}&format=json&units=m&apiKey=${apiKey}`;
-
-    async function fetchWeatherData() {
-        const errorDiv = document.getElementById('error-msg');
-        try {
-            errorDiv.style.display = 'none';
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Errore di rete o API invalida');
-            
-            const data = await response.json();
-            const obs = data.observations[0];
-
-            // Aggiornamento DOM con metriche Europee (Celsius, km/h, mm, hPa)
-            document.getElementById('temp').innerText = `${obs.metric.temp}°C`;
-            document.getElementById('condition').innerText = `Percepita: ${obs.metric.windChill}°C`;
-            document.getElementById('humidity').innerText = `${obs.humidity}%`;
-            document.getElementById('wind').innerText = `${obs.metric.windSpeed} km/h (${getWindDirection(obs.winddir)})`;
-            document.getElementById('precip').innerText = `${obs.metric.precipTotal} mm`;
-            document.getElementById('pressure').innerText = `${obs.metric.pressure} hPa`;
-            document.getElementById('uv').innerText = obs.uv !== null ? obs.uv : '0';
-            document.getElementById('dewpoint').innerText = `${obs.metric.dewpt}°C`;
-            
-            // Gestione orario locale
-            const localTime = new Date(obs.obsTimeLocal);
-            document.getElementById('time').innerText = `Ultimo aggiornamento: ${localTime.toLocaleTimeString('it-IT')} del ${localTime.toLocaleDateString('it-IT')}`;
-            
-        } catch (error) {
-            console.error(error);
-            errorDiv.style.display = 'block';
+        // Funzione helper per convertire le miglia in chilometri orari
+        function mphToKmh(mph) {
+            return mph !== undefined ? Math.round(mph * 1.60934 * 10) / 10 : 0;
         }
-    }
 
-    function getWindDirection(deg) {
-        if (deg >= 337.5 || deg < 22.5) return 'N';
-        if (deg >= 22.5 && deg < 67.5) return 'NE';
-        if (deg >= 67.5 && deg < 112.5) return 'E';
-        if (deg >= 112.5 && deg < 157.5) return 'SE';
-        if (deg >= 157.5 && deg < 202.5) return 'S';
-        if (deg >= 202.5 && deg < 247.5) return 'SO';
-        if (deg >= 247.5 && deg < 292.5) return 'O';
-        if (deg >= 292.5 && deg < 337.5) return 'NO';
-        return '';
-    }
+        // Funzione helper per convertire i pollici in millimetri
+        function inchesToMm(inches) {
+            return inches !== undefined ? Math.round(inches * 25.4 * 10) / 10 : 0;
+        }
 
-    // Carica i dati all'apertura
-    fetchWeatherData();
-    // Aggiorna automaticamente ogni 5 minuti
-    setInterval(fetchWeatherData, 300000);
-</script>
+        // Funzione helper per convertire i gradi Fahrenheit in Celsius
+        function fToC(f) {
+            return f !== undefined ? Math.round((f - 32) * 5 / 9 * 10) / 10 : 0;
+        }
 
+        // Funzione helper per convertire i pollici di mercurio in hPa
+        function inhgToHpa(inhg) {
+            return inhg !== undefined ? Math.round(inhg * 33.8639 * 10) / 10 : 0;
+        }
+
+        // Recupera i dati meteo in tempo reale correnti
+        async function fetchCurrentWeather() {
+            const url = `https://api.weather.com/v2/pws/observations/current?stationId=${STATION_ID}&format=json&units=e&apiKey=${API_KEY}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Errore nel recupero dei dati correnti");
+                const data = await response.json();
+                
+                if(data && data.observations && data.observations.length > 0) {
+                    updateDashboardUI(data.observations[0]);
+                }
+            } catch (error) {
+                console.error("Errore API Corrente:", error);
+                document.getElementById('update-time').innerText = "Errore di connessione";
+                document.getElementById('update-time').className = "text-sm font-medium text-red-400 flex items-center gap-1.5 mt-0.5";
+            }
+        }
+
+        // Aggiorna gli elementi testuali della Dashboard
+        function updateDashboardUI(obs) {
+            // Conversione unità imperiali -> metriche europee
+            const tempC = fToC(obs.imperial.temp);
+            const feelsC = fToC(obs.imperial.windChill); // o heatIndex
+            const dewC = fToC(obs.imperial.dewpt);
+            const windKmh = mphToKmh(obs.imperial.windSpeed);
+            const gustKmh = mphToKmh(obs.imperial.windGust);
+            const rainMm = inchesToMm(obs.imperial.precipTotal);
+            const pressureHpa = inhgToHpa(obs.imperial.pressure);
+
+            document.getElementById('temp-val').innerText = `${tempC}°C`;
+            document.getElementById('feels-val').innerText = `${feelsC}°C`;
+            document.getElementById('dew-val').innerText = `${dewC}°C`;
+            document.getElementById('humidity-val').innerText = `${obs.humidity}%`;
+            document.getElementById('wind-val').innerHTML = `${windKmh} <span class="text-lg font-normal text-slate-400">km/h</span>`;
+            document.getElementById('wind-dir').innerText = `${obs.winddir}°`;
+            document.getElementById('wind-gust').innerText = `${gustKmh} km/h`;
+            document.getElementById('rain-val').innerHTML = `${rainMm} <span class="text-lg font-normal text-slate-400">mm</span>`;
+            document.getElementById('pressure-val').innerHTML = `${pressureHpa} <span class="text-lg font-normal text-slate-400">hPa</span>`;
+            document.getElementById('solar-val').innerHTML = `${obs.solarRadiation || 0} <span class="text-xs font-normal text-slate-400">W/m²</span>`;
+            
+            const uv = obs.uv !== undefined ? obs.uv : 0;
+            document.getElementById('uv-val').innerText = uv;
+            
+            // Logica colore rischio UV
+            const uvLevelEl = document.querySelector('.id-uv-level');
+            if(uv <= 2) uvLevelEl.innerText = "Basso rischio";
+            else if(uv <= 5) uvLevelEl.innerText = "Rischio Moderato";
+            else if(uv <= 7) uvLevelEl.innerText = "Rischio Alto";
+            else uvLevelEl.innerText = "Rischio Estremo!";
+
+            // Orario aggiornamento localizzato
+            const localTime = new Date(obs.obsTimeLocal);
+            document.getElementById('update-time').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Online - ${localTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            document.getElementById('update-time').className = "text-sm font-medium text-emerald-400 flex items-center gap-1.5 mt-0.5";
+        }
+
+        // Recupera i dati storici delle ultime 24 ore
+        async function fetchHistoricalWeather() {
+            const url = `https://api.weather.com/v2/pws/observations/hourly/7day?stationId=${STATION_ID}&format=json&units=e&apiKey=${API_KEY}`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error("Errore nel recupero dello storico");
+                const data = await response.json();
+                
+                if(data && data.observations) {
+                    // Prendiamo solo le ultime 24 rilevazioni orarie per mantenere il grafico pulito
+                    historicalDataRaw = data.observations.slice(-24);
+                    initOrUpdateChart('temp');
+                }
+            } catch (error) {
+                console.error("Errore API Storico:", error);
+            }
+        }
+
+        // Configura o aggiorna la struttura del grafico Chart.js
+        function initOrUpdateChart(type) {
+            if(!historicalDataRaw) return;
+
+            const labels = historicalDataRaw.map(obs => {
+                const time = new Date(obs.obsTimeLocal);
+                return time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            });
+
+            let chartData = [];
+            let labelText = '';
+            let borderColor = '';
+            let backgroundColor = '';
+
+            if (type === 'temp') {
+                chartData = historicalDataRaw.map(obs => fToC(obs.imperial.tempHigh));
+                labelText = 'Temperatura Max (°C)';
+                borderColor = '#f97316';
+                backgroundColor = 'rgba(249, 115, 22, 0.15)';
+            } else if (type === 'rain') {
+                chartData = historicalDataRaw.map(obs => inchesToMm(obs.imperial.precipRate));
+                labelText = 'Intensità Pioggia (mm/h)';
+                borderColor = '#38bdf8';
+                backgroundColor = 'rgba(56, 189, 248, 0.15)';
+            } else if (type === 'wind') {
+                chartData = historicalDataRaw.map(obs => mphToKmh(obs.imperial.windspeedHigh));
+                labelText = 'Raffica Vento Max (km/h)';
+                borderColor = '#14b8a6';
+                backgroundColor = 'rgba(20, 184, 166, 0.15)';
+            }
+
+            if (weatherChart) {
+                weatherChart.data.labels = labels;
+                weatherChart.data.datasets[0].data = chartData;
+                weatherChart.data.datasets[0].label = labelText;
+                weatherChart.data.datasets[0].borderColor = borderColor;
+                weatherChart.data.datasets[0].backgroundColor = backgroundColor;
+                weatherChart.update();
+            } else {
+                const ctx = document.getElementById('historyChart').getContext('2d');
+                weatherChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: labelText,
+                            data: chartData,
+                            borderColor: borderColor,
+                            backgroundColor: backgroundColor,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 2,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { labels: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: 500 } } }
+                        },
+                        scales: {
+                            x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b' } },
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Permette lo switch tra i vari dataset tramite i bottoni dell'interfaccia
+        function changeChartDataset(type) {
+            const buttons = document.querySelectorAll('section button');
+            buttons.forEach(btn => {
+                btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+            });
+            
+            // Imposta classe attiva sul bottone cliccato
+            event.target.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-500 transition";
+            initOrUpdateChart(type);
+        }
+
+        // Avvio ed esecuzione periodica (Polling ogni 5 minuti)
+        function initDashboard() {
+            lucide.createIcons();
+            fetchCurrentWeather();
+            fetchHistoricalWeather();
+            
+            setInterval(fetchCurrentWeather, 300000); 
+            setInterval(fetchHistoricalWeather, 900000);
+        }
+
+        window.onload = initDashboard;
+    </script>
 </body>
 </html>
